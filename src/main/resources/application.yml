@@ -1,0 +1,17 @@
+server:
+  port: 8070
+  servlet:
+    context-path: /spring-boot-project
+    
+spring:
+  application:
+    name: spring-boot-project
+  profiles:
+    active: dev
+    
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    
+jwt:
+  secret: "n3Gz9sh5bTzLQhZV+KbE7yGqPlmZXQlQFD8Jc+ATzQo="  
