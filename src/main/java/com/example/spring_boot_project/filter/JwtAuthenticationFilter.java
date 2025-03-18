@@ -13,8 +13,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.spring_boot_project.utility.JwtTokenUtility;
+import com.example.employeedirectorysystem.utility.JwtTokenUtility;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,21 +37,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String token = getTokenFromRequest(request);
+		try {
+			String token = getTokenFromRequest(request);
 
-		if (token != null && jwtTokenUtility.validateToken(token, getEmailFromToken(token))) {
-			String email = jwtTokenUtility.extractEmail(token);
-			UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+			if (token != null && jwtTokenUtility.validateToken(token, getEmailFromToken(token))) {
+				String email = jwtTokenUtility.extractEmail(token);
+				UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-			// Create an Authentication object with the user details and authorities
-			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
-					null, userDetails.getAuthorities());
-			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-			logger.debug("Authorities: " + userDetails.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+				// Create an Authentication object with the user details and authorities
+				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
+						null, userDetails.getAuthorities());
+				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				logger.debug("Authorities: " + userDetails.getAuthorities());
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+			}
+
+			filterChain.doFilter(request, response);
+		} catch (ExpiredJwtException e) {
+			logger.error("JWT token is expired");
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().write("JWT token is expired");
 		}
-
-		filterChain.doFilter(request, response);
 	}
 
 	private String getTokenFromRequest(HttpServletRequest request) {
