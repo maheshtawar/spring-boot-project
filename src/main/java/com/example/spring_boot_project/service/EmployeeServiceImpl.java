@@ -11,9 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.example.spring_boot_project.model.Employee;
-import com.example.spring_boot_project.repository.EmployeeRepository;
+import com.example.employeedirectorysystem.model.Employee;
+import com.example.employeedirectorysystem.repository.EmployeeRepository;
 
 /**
  * @author MaheshT
@@ -35,7 +37,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-	public List<Employee> getAllEmployees() throws Exception {
+		public List<Employee> getAllEmployees() throws Exception {
 		try {
 			return employeeRepository.getAllEmployees(reader);
 		} catch (Exception e) {
@@ -45,9 +47,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public long addEmployee(Employee employee) throws Exception {
 		try {
-			return employeeRepository.addEmployee(employee, writer);
+			long employeeId = employeeRepository.addEmployee(employee, writer);
+			if (employeeId == 0) {
+				throw new Exception("Failed to add employee.");
+			}
+			return employeeId;
 		} catch (Exception e) {
 			logger.error("Unexpected error adding employee: " + e.getMessage());
 			throw new Exception("Unexpected error occurred while adding an employee.");
@@ -55,6 +62,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public void updateEmployee(Employee employee) throws Exception {
 		try {
 			int rowsAffected = employeeRepository.updateEmployee(employee, writer);
@@ -68,6 +76,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	public void deleteEmployee(int id) throws Exception {
 		try {
 			int rowsAffected = employeeRepository.deleteEmployee(id, writer);
@@ -77,6 +86,16 @@ public class EmployeeServiceImpl implements EmployeeService {
 		} catch (Exception e) {
 			logger.error("Unexpected error deleting employee: " + e.getMessage());
 			throw new Exception("Unexpected error occurred while deleting the employee.");
+		}
+	}
+
+	@Override
+		public Employee getEmployeeById(int id) throws Exception {
+		try {
+			return employeeRepository.getEmployeeById(id, reader);
+		} catch (Exception e) {
+			logger.error("Unexpected error fetching employee by id: " + e.getMessage());
+			throw new Exception("Unexpected error occurred while fetching the employee.");
 		}
 	}
 }
