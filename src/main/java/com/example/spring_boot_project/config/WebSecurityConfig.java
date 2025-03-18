@@ -12,8 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.example.spring_boot_project.filter.JwtAuthenticationFilter;
-import com.example.spring_boot_project.service.CustomUserDetailsService;
+import com.example.employeedirectorysystem.filter.JwtAuthenticationFilter;
+import com.example.employeedirectorysystem.service.CustomUserDetailsService;
 
 /**
  * Web security configuration class.
@@ -38,7 +38,7 @@ public class WebSecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll()
-						.requestMatchers("/employees/all").hasAnyRole("ADMIN","HR") // Use hasRole for "ROLE_ADMIN"
+//						.requestMatchers("/employees/**").hasAnyRole("ADMIN", "HR") // Use hasRole for "ROLE_ADMIN"
 						.anyRequest().authenticated()) // Secure all other endpoints
 				.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
