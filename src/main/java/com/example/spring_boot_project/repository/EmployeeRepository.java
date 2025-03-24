@@ -5,10 +5,12 @@ package com.example.spring_boot_project.repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,7 +18,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import com.example.employeedirectorysystem.model.Employee;
+import com.example.spring_boot_project.model.Employee;
+import com.example.spring_boot_project.utility.JwtTokenUtility;
 
 /**
  * @author MaheshT
@@ -25,14 +28,29 @@ import com.example.employeedirectorysystem.model.Employee;
 @Repository
 public class EmployeeRepository {
 
+	@Autowired
+	JwtTokenUtility jwtTokenUtility;
+
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	public List<Employee> getAllEmployees(JdbcTemplate reader) throws Exception {
+	public List<Employee> getAllEmployees(JdbcTemplate reader, String search) throws Exception {
 		try {
 			StringBuilder sql = new StringBuilder();
-			sql.append("SELECT `employee_id` 'employeeId', `full_name` 'fullName', `department`, `contact_number` 'contactNumber', `email`, `date_of_joining` 'dateOfJoining', `position_id` 'positionId' ");
-			sql.append("FROM `employeedirectory`.`employees`;");
-			return reader.query(sql.toString(), new BeanPropertyRowMapper<>(Employee.class));
+			sql.append(
+					"SELECT `employee_id` 'employeeId', `full_name` 'fullName', `department`, `contact_number` 'contactNumber', `email`, `date_of_joining` 'dateOfJoining', `position_id` 'positionId' ");
+			sql.append("FROM `employeedirectory`.`employees`WHERE 1=1");
+
+			List<Object> params = new ArrayList<>();
+
+			if (search != null && !search.isEmpty()) {
+				sql.append(" AND (full_name LIKE ?");
+				sql.append(" OR department LIKE ?)");
+				params.add("%" + search + "%");
+				params.add("%" + search + "%");
+			}
+			sql.append(";");
+
+			return reader.query(sql.toString(), new BeanPropertyRowMapper<>(Employee.class), params.toArray());
 		} catch (DataAccessException e) {
 			logger.error("Database error while fetching employees: " + e.getMessage());
 			throw new Exception("Database error: Unable to retrieve employees.");
@@ -43,8 +61,9 @@ public class EmployeeRepository {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		try {
 			StringBuilder sql = new StringBuilder();
-			sql.append("INSERT INTO employees (full_name, department, contact_number, email, date_of_joining, created_by, updated_by, position_id) ");
-			sql.append("VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
+			sql.append(
+					"INSERT INTO employees (full_name, department, contact_number, email, date_of_joining, created_by,  position_id) ");
+			sql.append("VALUES (?, ?, ?, ?, ?, ?, ?);");
 
 			writer.update(con -> {
 				PreparedStatement ps = con.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
@@ -53,9 +72,8 @@ public class EmployeeRepository {
 				ps.setString(3, employee.getContactNumber());
 				ps.setString(4, employee.getEmail());
 				ps.setDate(5, employee.getDateOfJoining());
-				ps.setInt(6, employee.getCreatedBy());
-				ps.setInt(7, employee.getUpdatedBy());
-				ps.setInt(8, employee.getPositionId());
+				ps.setString(6, jwtTokenUtility.getCurrentUsername());
+				ps.setInt(7, employee.getPositionId());
 				return ps;
 			}, keyHolder);
 
@@ -69,10 +87,13 @@ public class EmployeeRepository {
 	public int updateEmployee(Employee employee, JdbcTemplate writer) throws Exception {
 		try {
 			StringBuilder sql = new StringBuilder();
-			sql.append("UPDATE employees SET full_name=?, department=?, contact_number=?, email=?, date_of_joining=?, updated_by=?, position_id=? ");
+			sql.append(
+					"UPDATE employees SET full_name=?, department=?, contact_number=?, email=?, date_of_joining=?, updated_by=?, position_id=? ");
 			sql.append("WHERE employee_id=?");
 
-			return writer.update(sql.toString(), employee.getFullName(), employee.getDepartment(), employee.getContactNumber(), employee.getEmail(), employee.getDateOfJoining(), employee.getUpdatedBy(), employee.getPositionId(), employee.getEmployeeId());
+			return writer.update(sql.toString(), employee.getFullName(), employee.getDepartment(),
+					employee.getContactNumber(), employee.getEmail(), employee.getDateOfJoining(),
+					jwtTokenUtility.getCurrentUsername(), employee.getPositionId(), employee.getEmployeeId());
 		} catch (DataAccessException e) {
 			logger.error("Database error while updating employee: " + e.getMessage());
 			throw new Exception("Database error: Unable to update employee.");
@@ -94,9 +115,17 @@ public class EmployeeRepository {
 	public Employee getEmployeeById(int id, JdbcTemplate reader) throws Exception {
 		try {
 			StringBuilder sql = new StringBuilder();
-			sql.append("SELECT `employee_id` 'employeeId', `full_name` 'fullName', `department`, `contact_number` 'contactNumber', `email`, `date_of_joining` 'dateOfJoining', `position_id` 'positionId' ");
-			sql.append("FROM `employeedirectory`.`employees` ");
-			sql.append("WHERE `employee_id` = ?");
+			sql.append(" SELECT ");
+			sql.append(" e.`employee_id` 'employeeId', ");
+			sql.append(" e.`full_name` 'fullName', ");
+			sql.append(" e.`department`, ");
+			sql.append(" e.`contact_number` 'contactNumber', ");
+			sql.append(" e.`email`, ");
+			sql.append(" e.`date_of_joining` 'dateOfJoining', ");
+			sql.append(" e.`position_id` 'positionId' ");
+			sql.append(" FROM ");
+			sql.append(" `employeedirectory`.`employees` e ");
+			sql.append(" WHERE `employee_id` = ?; ");
 
 			return reader.queryForObject(sql.toString(), new BeanPropertyRowMapper<>(Employee.class), id);
 		} catch (DataAccessException e) {

@@ -14,6 +14,9 @@ import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -75,5 +78,30 @@ public class JwtTokenUtility {
 
 	private boolean isTokenExpired(String token) {
 		return extractClaim(token, Claims::getExpiration).before(new Date());
+	}
+
+	public String getCurrentUsername() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		if (authentication != null && authentication.isAuthenticated()) {
+			Object principal = authentication.getPrincipal();
+
+			String username = null;
+
+			if (principal instanceof UserDetails) {
+				username = ((UserDetails) principal).getUsername();
+			} else if (principal instanceof String) {
+				username = (String) principal; // In case principal is just a raw username
+			}
+
+			// Extract the part before '@' in the email
+			if (username != null && username.contains("@")) {
+				return username.split("@")[0];
+			}
+
+			return username; // If no '@' is found, return as is
+		}
+
+		return null; // No authenticated user
 	}
 }

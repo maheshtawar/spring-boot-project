@@ -8,17 +8,18 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.example.employeedirectorysystem.model.Employee;
-import com.example.employeedirectorysystem.service.EmployeeService;
+import com.example.spring_boot_project.model.Employee;
+import com.example.spring_boot_project.service.EmployeeService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -41,18 +42,18 @@ public class EmployeeController {
 
 	@GetMapping("/all")
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_HR')")
-	public List<Employee> getAllEmployees() {
+	public List<Employee> getAllEmployees(@RequestParam(name = "search", required = false) String search) {
 		try {
-			return employeeService.getAllEmployees();
+			return employeeService.getAllEmployees(search);
 		} catch (Exception e) {
-			logger.error("Error fetching employees: " + e.getMessage(), e);
+			logger.error("Error fetching employees: " + e.getMessage());
 			throw new RuntimeException("Unexpected error occurred while fetching employees.");
 		}
 	}
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_HR')")
-	public Employee getEmployeeById(@PathVariable int id) {
+	public Employee getEmployeeById(@PathVariable("id") int id) {
 		try {
 			return employeeService.getEmployeeById(id);
 		} catch (Exception e) {
@@ -72,8 +73,8 @@ public class EmployeeController {
 		}
 	}
 
-	@PutMapping("/update")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PutMapping("/update/{id}")
+	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_HR')")
 	public void updateEmployee(@RequestBody Employee employee) {
 		try {
 			employeeService.updateEmployee(employee);
@@ -85,7 +86,7 @@ public class EmployeeController {
 
 	@DeleteMapping("/delete/{id}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public void deleteEmployee(@PathVariable int id) {
+	public void deleteEmployee(@PathVariable("id") int id) {
 		try {
 			employeeService.deleteEmployee(id);
 		} catch (Exception e) {

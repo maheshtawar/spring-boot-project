@@ -25,8 +25,10 @@ public class PositionRepository {
 
 	public List<Position> getAllPositions(JdbcTemplate reader) throws Exception {
 		try {
-			String query = "SELECT position_id, position FROM positions";
-			return reader.query(query, new BeanPropertyRowMapper<>(Position.class));
+			StringBuilder sql = new StringBuilder();
+			sql.append("SELECT position_id, position ");
+			sql.append("FROM positions;");
+			return reader.query(sql.toString(), new BeanPropertyRowMapper<>(Position.class));
 		} catch (DataAccessException e) {
 			logger.error("Database error while fetching positions: " + e.getMessage());
 			throw new Exception("Database error: Unable to retrieve positions.");

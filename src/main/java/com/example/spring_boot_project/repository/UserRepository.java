@@ -16,7 +16,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import com.example.employeedirectorysystem.model.User;
+import com.example.spring_boot_project.model.User;
 
 /**
  * @author MaheshT
@@ -24,7 +24,7 @@ import com.example.employeedirectorysystem.model.User;
  */
 @Repository
 public class UserRepository {
-	
+
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public long registerUser(User user, JdbcTemplate writer) throws Exception {

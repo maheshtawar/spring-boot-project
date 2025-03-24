@@ -70,7 +70,7 @@ public class AuthController {
 
 			if (user != null && passwordEncoder.matches(credentials.get("password"), user.getPassword())) {
 				// Generate JWT token
-				String token = jwtTokenUtility.generateToken(user.getEmail(),user.getRole());
+				String token = jwtTokenUtility.generateToken(user.getEmail(), user.getRole());
 
 				return ResponseEntity.ok(Map.of("message", "Login successful", "token", token, "role", user.getRole()));
 			}

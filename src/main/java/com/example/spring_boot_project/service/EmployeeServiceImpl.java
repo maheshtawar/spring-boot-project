@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.employeedirectorysystem.model.Employee;
-import com.example.employeedirectorysystem.repository.EmployeeRepository;
+import com.example.spring_boot_project.model.Employee;
+import com.example.spring_boot_project.repository.EmployeeRepository;
 
 /**
  * @author MaheshT
@@ -37,9 +37,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-		public List<Employee> getAllEmployees() throws Exception {
+	public List<Employee> getAllEmployees(String search) throws Exception {
 		try {
-			return employeeRepository.getAllEmployees(reader);
+
+			return employeeRepository.getAllEmployees(reader, search);
 		} catch (Exception e) {
 			logger.error("Unexpected error fetching employees: " + e.getMessage());
 			throw new Exception("Unexpected error occurred while fetching employees.");
@@ -90,7 +91,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-		public Employee getEmployeeById(int id) throws Exception {
+	public Employee getEmployeeById(int id) throws Exception {
 		try {
 			return employeeRepository.getEmployeeById(id, reader);
 		} catch (Exception e) {

@@ -12,8 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.example.employeedirectorysystem.filter.JwtAuthenticationFilter;
-import com.example.employeedirectorysystem.service.CustomUserDetailsService;
+import com.example.spring_boot_project.filter.JwtAuthenticationFilter;
+import com.example.spring_boot_project.service.CustomUserDetailsService;
 
 /**
  * Web security configuration class.
@@ -53,4 +53,16 @@ public class WebSecurityConfig {
 	public UserDetailsService userDetailsService() {
 		return new CustomUserDetailsService();
 	}
+
+//	@Bean
+//	public WebMvcConfigurer corsConfigurer() {
+//		System.out.println("In CORS configuration ...................");
+//		return new WebMvcConfigurer() {
+//			@Override
+//			public void addCorsMappings(CorsRegistry registry) {
+//				registry.addMapping("/**").allowedOrigins("http://localhost:5173")
+//						.allowedMethods("GET", "POST", "PUT", "DELETE").allowedHeaders("*").allowCredentials(true);
+//			}
+//		};
+//	}
 }
